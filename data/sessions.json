@@ -1,33 +1,4 @@
 {
-  "lastUpdated": "2026-05-13",
-  "sessions": [
-    {
-      "id": "2026-05-10",
-      "date": "2026-05-10",
-      "note": "Private game",
-      "players": [
-        {
-          "name": "Alex",
-          "buyIn": 100.0,
-          "buyOut": 0.0,
-          "net": 50.0,
-          "handsWon": null
-        },
-        {
-          "name": "Bob",
-          "buyIn": 100.0,
-          "buyOut": 0.0,
-          "net": -30.0,
-          "handsWon": null
-        },
-        {
-          "name": "Charlie",
-          "buyIn": 100.0,
-          "buyOut": 0.0,
-          "net": -20.0,
-          "handsWon": null
-        }
-      ]
-    }
-  ]
+  "lastUpdated": "",
+  "sessions": []
 }
