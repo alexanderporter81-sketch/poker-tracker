@@ -27,9 +27,14 @@ SESSIONS_DIR = REPO_ROOT / "sessions"
 DATA_FILE    = REPO_ROOT / "data" / "sessions.json"
 
 # ── Parse PokerNow CSV ────────────────────────────────────────────────────────
-def detect_cents(players_raw: list[dict]) -> bool:
+def get_divisor(players_raw: list[dict]) -> float:
     buy_ins = [p['buy_in'] for p in players_raw if p['buy_in'] > 0]
-    return bool(buy_ins) and (sum(buy_ins) / len(buy_ins)) >= 1000
+    if not buy_ins:
+        return 1.0
+    avg = sum(buy_ins) / len(buy_ins)
+    if avg >= 10000: return 1000.0
+    if avg >= 1000:  return 100.0
+    return 1.0
 
 
 def parse_pokernow_csv(filepath: str) -> tuple[list[dict], str | None]:
@@ -72,9 +77,9 @@ def parse_pokernow_csv(filepath: str) -> tuple[list[dict], str | None]:
     if not players_raw:
         return [], auto_date
 
-    divisor = 100.0 if detect_cents(players_raw) else 1.0
-    if divisor == 100.0:
-        print("  (detected cent values — converting to dollars automatically)")
+    divisor = get_divisor(players_raw)
+    if divisor > 1:
+        print(f"  (chip values detected — dividing by {int(divisor)} to get dollars)")
 
     players = [{
         'name':   p['name'],

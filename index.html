@@ -290,7 +290,7 @@ function parseCsvText(text) {
 
   // Cents detection
   const avgBuyin = playersRaw.reduce((s,p) => s + p.buyIn, 0) / playersRaw.length;
-  const divisor  = avgBuyin >= 1000 ? 100 : 1;
+  const divisor  = avgBuyin >= 10000 ? 1000 : avgBuyin >= 1000 ? 100 : 1;
 
   const players = playersRaw.map(p => ({
     name:   p.name,

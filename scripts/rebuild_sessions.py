@@ -27,11 +27,17 @@ DATA_FILE     = REPO_ROOT / "data" / "sessions.json"
 HANDS_FILE    = REPO_ROOT / "data" / "hands_won.json"
 
 
-def detect_cents(players_raw: list[dict]) -> bool:
-    """PokerNow exports values in cents (50000 = $500). Detect this by checking
-    if buy_in values are suspiciously large (>= 1000 suggests cents)."""
+def get_divisor(players_raw: list[dict]) -> float:
+    """Pick the right divisor based on avg buy-in size.
+    PokerNow exports raw chip counts — e.g. 50000 chips = $50 (divisor 1000)
+    or 5000 chips = $50 (divisor 100). Anything under 1000 is already dollars."""
     buy_ins = [p['buy_in'] for p in players_raw if p['buy_in'] > 0]
-    return bool(buy_ins) and (sum(buy_ins) / len(buy_ins)) >= 1000
+    if not buy_ins:
+        return 1.0
+    avg = sum(buy_ins) / len(buy_ins)
+    if avg >= 10000: return 1000.0
+    if avg >= 1000:  return 100.0
+    return 1.0
 
 
 def parse_pokernow_csv(filepath: Path) -> tuple[list[dict], str | None]:
@@ -85,10 +91,10 @@ def parse_pokernow_csv(filepath: Path) -> tuple[list[dict], str | None]:
     if not players_raw:
         return [], session_date
 
-    # Convert cents → dollars if needed
-    divisor = 100.0 if detect_cents(players_raw) else 1.0
-    if divisor == 100.0:
-        print(f"  (values look like cents — dividing by 100 to get dollars)")
+    # Convert chip values → dollars
+    divisor = get_divisor(players_raw)
+    if divisor > 1:
+        print(f"  (chip values detected — dividing by {int(divisor)} to get dollars)")
 
     players = [{
         'name':   p['name'],
