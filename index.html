@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Poker Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
       --green:#27ae60;--red:#e74c3c;--gold:#f0c040;
@@ -94,6 +95,11 @@
     .player-row:last-child{border-bottom:none;}
     .player-id-badge{font-size:.75rem;color:var(--muted);font-family:monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;flex-shrink:0;}
     .player-row input{flex:1;padding:6px 10px;font-size:.88rem;}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 20px 16px;}
+    .chart-wrap{position:relative;height:280px;}
+    .chart-tabs{display:flex;gap:4px;margin-bottom:18px;}
+    .chart-tab{padding:5px 14px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s;}
+    .chart-tab.active{background:var(--gold);color:#000;border-color:var(--gold);}
     @media(max-width:600px){.lb-row{grid-template-columns:28px 1fr 80px 70px;}.lb-row .winrate,.lb-row.header-row .winrate{display:none;}}
   </style>
 </head>
@@ -183,6 +189,18 @@
       <h3>Confirm Results</h3>
       <p class="modal-sub">Check the numbers and optionally enter hands won. New players show their PokerNow nickname — you can set a real name here.</p>
       <div id="previewArea"></div>
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+        <label style="margin-top:0">📷 Attach screenshot <span style="color:var(--muted);font-weight:400">(optional — saved as proof for the group)</span></label>
+        <div id="screenshotDrop" onclick="document.getElementById('screenshotFile').click()"
+          style="margin-top:6px;border:1px dashed var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;font-size:.85rem;color:var(--muted);">
+          Click to attach a screenshot
+        </div>
+        <input type="file" id="screenshotFile" accept="image/*" style="display:none" onchange="handleScreenshot(this)"/>
+        <div id="screenshotPreview" style="display:none;margin-top:8px;">
+          <img id="screenshotThumb" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border);"/>
+          <button class="btn btn-ghost" onclick="clearScreenshot()" style="margin-top:6px;font-size:.8rem;padding:4px 10px;">Remove</button>
+        </div>
+      </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
         <button class="btn btn-primary" onclick="saveSession()">Save to tracker</button>
@@ -196,8 +214,9 @@
 </div>
 
 <script>
-const DATA_PATH    = 'data/sessions.json';
-const PLAYERS_PATH = 'data/players.json';
+const DATA_PATH       = 'data/sessions.json';
+const PLAYERS_PATH    = 'data/players.json';
+const SCREENSHOTS_DIR = 'screenshots';
 
 const store = { get: k=>localStorage.getItem('pt_'+k)||'', set:(k,v)=>localStorage.setItem('pt_'+k,v) };
 
@@ -315,12 +334,17 @@ function render(data) {
       return `<tr><td>${esc(name)}</td><td>$${p.buyIn?.toFixed(2)??'—'}</td><td class="td-net ${nc(p.net)}">${fmt(p.net)}</td><td style="color:var(--muted)">${p.handsWon!=null?p.handsWon:'—'}</td></tr>`;
     }).join('');
     const pos=sp.filter(p=>p.net>0).length,neg=sp.filter(p=>p.net<0).length;
+    const owner=store.get('owner'),repo=store.get('repo');
+    const proofUrl=s.screenshotPath&&owner&&repo
+      ? `https://raw.githubusercontent.com/${owner}/${repo}/main/${s.screenshotPath}`
+      : null;
     return `<div class="session-card">
       <div class="session-header" onclick="toggleSession(this)">
         <div><div class="session-date">${fmtDate(s.date)}</div><div class="session-meta">${sp.length} players · ${esc(s.note||'Private game')}</div></div>
         <div class="session-summary">
           ${pos?`<span class="session-tag tag-green">▲ ${pos} up</span>`:''}
           ${neg?`<span class="session-tag tag-red">▼ ${neg} down</span>`:''}
+          ${proofUrl?`<a href="${proofUrl}" target="_blank" onclick="event.stopPropagation()" title="View screenshot proof" style="color:var(--muted);font-size:.88rem;text-decoration:none;">📷</a>`:''}
           <span class="chevron">▼</span>
         </div>
       </div>
@@ -336,6 +360,16 @@ function render(data) {
       <div class="stat-card"><div class="stat-label">All-time leader</div><div class="stat-value" style="font-size:1.2rem">${bigWinner?esc(bigWinner.name):'—'}</div></div>
     </div>
     <section>
+      <h2>Performance</h2>
+      <div class="chart-card">
+        <div class="chart-tabs">
+          <button class="chart-tab active" onclick="switchChart('running',this)">Running total</button>
+          <button class="chart-tab" onclick="switchChart('session',this)">Per session</button>
+        </div>
+        <div class="chart-wrap"><canvas id="perfChart"></canvas></div>
+      </div>
+    </section>
+    <section>
       <h2>Leaderboard</h2>
       <div class="leaderboard">
         <div class="lb-row header-row"><div></div><div>Player</div><div style="text-align:right">Net P&L</div><div style="text-align:right">Hands won</div><div style="text-align:right">Avg / session</div></div>
@@ -343,6 +377,9 @@ function render(data) {
       </div>
     </section>
     <section><h2>Session history</h2>${cards}</section>`;
+
+  // Render chart after DOM is updated
+  requestAnimationFrame(() => renderChart(data, 'running'));
 }
 
 function toggleSession(header){
@@ -579,6 +616,154 @@ async function saveSession(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+const PLAYER_COLORS = ['#f0c040','#4fc3f7','#81c784','#ff8a65','#ce93d8','#f48fb1','#80cbc4','#ffcc80','#a5d6a7','#90caf9'];
+let perfChartInstance = null;
+let lastChartData = null;
+
+function switchChart(type, btn) {
+  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastChartData) renderChart(lastChartData, type);
+}
+
+function renderChart(data, type='running') {
+  lastChartData = data;
+  const canvas = document.getElementById('perfChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const sessions = (data.sessions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if (!sessions.length) return;
+
+  // Collect all unique players in order of first appearance
+  const playerOrder = [];
+  const seen = new Set();
+  for (const s of sessions) {
+    for (const p of (s.players||[])) {
+      const name = resolveName(p.playerId, p.name);
+      if (!seen.has(name)) { seen.add(name); playerOrder.push(name); }
+    }
+  }
+
+  const labels = sessions.map(s => fmtDate(s.date));
+
+  let datasets;
+  if (type === 'running') {
+    // Cumulative running total per player
+    const totals = {};
+    playerOrder.forEach(n => totals[n] = 0);
+
+    const seriesData = playerOrder.map(() => []);
+    for (const s of sessions) {
+      const sessionMap = {};
+      for (const p of (s.players||[])) sessionMap[resolveName(p.playerId,p.name)] = p.net||0;
+      playerOrder.forEach((name, i) => {
+        totals[name] = Math.round((totals[name] + (sessionMap[name]||0)) * 100) / 100;
+        seriesData[i].push(totals[name]);
+      });
+    }
+
+    datasets = playerOrder.map((name, i) => {
+      const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+      const grad = ctx.createLinearGradient(0, 0, 0, 280);
+      grad.addColorStop(0, color + '40');
+      grad.addColorStop(1, color + '00');
+      return {
+        label: name,
+        data: seriesData[i],
+        borderColor: color,
+        backgroundColor: grad,
+        borderWidth: 2.5,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: color,
+        pointBorderColor: '#0d1117',
+        pointBorderWidth: 2,
+        pointRadius: sessions.length === 1 ? 5 : 4,
+        pointHoverRadius: 7,
+      };
+    });
+  } else {
+    // Per-session bars
+    datasets = playerOrder.map((name, i) => {
+      const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+      return {
+        label: name,
+        data: sessions.map(s => {
+          const p = (s.players||[]).find(p => resolveName(p.playerId,p.name)===name);
+          return p ? Math.round(p.net * 100)/100 : 0;
+        }),
+        backgroundColor: color + 'cc',
+        borderColor: color,
+        borderWidth: 1,
+        borderRadius: 4,
+        borderSkipped: false,
+      };
+    });
+  }
+
+  if (perfChartInstance) perfChartInstance.destroy();
+
+  perfChartInstance = new Chart(ctx, {
+    type: type === 'running' ? 'line' : 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeInOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#e6edf3',
+            padding: 20,
+            usePointStyle: true,
+            pointStyleWidth: 10,
+            font: { size: 12 },
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1c2330',
+          borderColor: '#30363d',
+          borderWidth: 1,
+          titleColor: '#e6edf3',
+          titleFont: { size: 13, weight: '600' },
+          bodyColor: '#7d8590',
+          bodyFont: { size: 12 },
+          padding: 12,
+          callbacks: {
+            label: c => {
+              const v = c.parsed.y;
+              return `  ${c.dataset.label}:  ${v>=0?'+$':'-$'}${Math.abs(v).toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(48,54,61,0.4)', drawTicks: false },
+          ticks: { color: '#7d8590', font: { size: 11 }, padding: 8 },
+          border: { color: '#30363d' }
+        },
+        y: {
+          grid: { color: 'rgba(48,54,61,0.4)', drawTicks: false },
+          ticks: {
+            color: '#7d8590',
+            font: { size: 11 },
+            padding: 8,
+            callback: v => (v>=0?'+$':'-$')+Math.abs(v).toFixed(0)
+          },
+          border: { color: '#30363d', dash: [4,4] },
+          ...(type==='running' ? {} : { beginAtZero: true }),
+        }
+      }
+    }
+  });
+}
+
 load();
 </script>
 </body>
