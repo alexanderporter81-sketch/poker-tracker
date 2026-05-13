@@ -6,134 +6,95 @@
   <title>Poker Tracker</title>
   <style>
     :root {
-      --green:   #27ae60;
-      --red:     #e74c3c;
-      --gold:    #f0c040;
-      --bg:      #0d1117;
-      --surface: #161b22;
-      --surface2:#1c2330;
-      --border:  #30363d;
-      --text:    #e6edf3;
-      --muted:   #7d8590;
-      --radius:  10px;
+      --green:#27ae60;--red:#e74c3c;--gold:#f0c040;
+      --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;
+      --border:#30363d;--text:#e6edf3;--muted:#7d8590;--radius:10px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 100vh; }
-
-    /* ── Header ── */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; }
-    .logo-icon { font-size: 1.6rem; }
-    .subtitle { color: var(--muted); font-size: .85rem; margin-top: 2px; font-weight: 400; }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .last-updated { color: var(--muted); font-size: .8rem; }
-
-    /* ── Buttons ── */
-    .btn { padding: 8px 16px; border-radius: 6px; font-size: .88rem; font-weight: 600; cursor: pointer; border: none; transition: opacity .15s, transform .1s; }
-    .btn:hover { opacity: .85; }
-    .btn:active { transform: scale(.97); }
-    .btn-primary { background: var(--gold); color: #000; }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-    .btn-danger { background: rgba(231,76,60,.15); color: var(--red); border: 1px solid rgba(231,76,60,.3); }
-    .btn-green { background: rgba(39,174,96,.15); color: var(--green); border: 1px solid rgba(39,174,96,.3); }
-
-    /* ── Layout ── */
-    main { max-width: 1000px; margin: 0 auto; padding: 28px 20px; }
-    section { margin-bottom: 40px; }
-    h2 { font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
-
-    /* ── Stats bar ── */
-    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 32px; }
-    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
-    .stat-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
-    .stat-value { font-size: 1.6rem; font-weight: 700; }
-
-    /* ── Leaderboard ── */
-    .leaderboard { display: flex; flex-direction: column; gap: 8px; }
-    .lb-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; display: grid; grid-template-columns: 36px 1fr 90px 90px 80px; align-items: center; gap: 12px; }
-    .lb-row:hover { border-color: var(--gold); }
-    .lb-row.header-row { background: transparent; border-color: transparent; padding-top: 0; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-    .lb-row.header-row:hover { border-color: transparent; }
-    .rank { font-size: .9rem; font-weight: 700; color: var(--muted); text-align: center; }
-    .rank.gold { color: #f0c040; font-size: 1.1rem; } .rank.silver { color: #a8b2bc; font-size: 1.1rem; } .rank.bronze { color: #cd7f32; font-size: 1.1rem; }
-    .player-name { font-weight: 600; font-size: .97rem; }
-    .sessions-count { color: var(--muted); font-size: .83rem; }
-    .net { font-weight: 700; font-size: 1.05rem; text-align: right; }
-    .net.pos { color: var(--green); } .net.neg { color: var(--red); } .net.zero { color: var(--muted); }
-    .hands { text-align: right; color: var(--muted); font-size: .9rem; }
-    .winrate { text-align: right; font-size: .85rem; color: var(--muted); }
-
-    /* ── Sessions ── */
-    .session-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-    .session-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; }
-    .session-header:hover { background: var(--surface2); }
-    .session-date { font-weight: 600; font-size: .97rem; }
-    .session-meta { color: var(--muted); font-size: .83rem; margin-top: 2px; }
-    .session-summary { display: flex; gap: 10px; align-items: center; }
-    .session-tag { font-size: .78rem; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
-    .tag-green { background: rgba(39,174,96,.15); color: var(--green); border: 1px solid rgba(39,174,96,.3); }
-    .tag-red   { background: rgba(231,76,60,.15);  color: var(--red);   border: 1px solid rgba(231,76,60,.3); }
-    .chevron { color: var(--muted); font-size: .8rem; transition: transform .2s; }
-    .chevron.open { transform: rotate(180deg); }
-    .session-body { display: none; border-top: 1px solid var(--border); }
-    .session-body.open { display: block; }
-    .session-table { width: 100%; border-collapse: collapse; }
-    .session-table th, .session-table td { padding: 10px 18px; text-align: left; font-size: .88rem; }
-    .session-table th { color: var(--muted); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; background: var(--surface2); }
-    .session-table td { border-top: 1px solid var(--border); }
-    .session-table tr:hover td { background: rgba(255,255,255,.02); }
-    .td-net { font-weight: 700; }
-    .td-net.pos { color: var(--green); } .td-net.neg { color: var(--red); } .td-net.zero { color: var(--muted); }
-
-    /* ── Empty / error ── */
-    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
-    .empty h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem; }
-    .empty p { font-size: .9rem; line-height: 1.6; max-width: 420px; margin: 0 auto; }
-
-    /* ── Setup banner ── */
-    .setup-banner { background: rgba(240,192,64,.07); border: 1px solid rgba(240,192,64,.25); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .setup-banner p { font-size: .88rem; color: var(--text); }
-    .setup-banner p span { color: var(--gold); }
-
-    /* ── Modal overlay ── */
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-    .modal-bg.open { display: flex; }
-    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
-    .modal h3 { font-size: 1.1rem; margin-bottom: 6px; }
-    .modal .modal-sub { color: var(--muted); font-size: .85rem; margin-bottom: 22px; line-height: 1.5; }
-    .modal-footer { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
-    label { display: block; font-size: .83rem; color: var(--muted); margin-bottom: 6px; margin-top: 16px; }
-    input[type=text], input[type=password], textarea, select {
-      width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
-      color: var(--text); padding: 9px 12px; font-size: .9rem; font-family: inherit;
-    }
-    input[type=text]:focus, input[type=password]:focus, textarea:focus { outline: none; border-color: var(--gold); }
-    textarea { resize: vertical; min-height: 120px; font-family: monospace; font-size: .82rem; }
-
-    /* ── Preview table ── */
-    .preview-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-    .preview-table th { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-    .preview-table td { padding: 8px 10px; font-size: .88rem; border-bottom: 1px solid rgba(255,255,255,.04); }
-    .preview-table input[type=number] { width: 80px; padding: 4px 8px; font-size: .85rem; }
-
-    /* ── Step indicator ── */
-    .steps { display: flex; gap: 6px; margin-bottom: 20px; }
-    .step-dot { height: 4px; border-radius: 2px; flex: 1; background: var(--border); transition: background .2s; }
-    .step-dot.active { background: var(--gold); }
-
-    /* ── Spinner ── */
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .success-msg { color: var(--green); font-size: .9rem; text-align: center; padding: 12px; }
-    .error-msg   { color: var(--red);   font-size: .88rem; padding: 10px 14px; background: rgba(231,76,60,.1); border: 1px solid rgba(231,76,60,.3); border-radius: 6px; margin-top: 12px; }
-
-    @media (max-width: 600px) {
-      .lb-row { grid-template-columns: 28px 1fr 80px 70px; }
-      .lb-row .winrate, .lb-row.header-row .winrate { display: none; }
-    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .logo{display:flex;align-items:center;gap:10px;font-size:1.35rem;font-weight:700;letter-spacing:-.3px;}
+    .logo-icon{font-size:1.6rem;}
+    .subtitle{color:var(--muted);font-size:.85rem;margin-top:2px;font-weight:400;}
+    .header-actions{display:flex;gap:8px;align-items:center;}
+    .last-updated{color:var(--muted);font-size:.8rem;}
+    .btn{padding:8px 16px;border-radius:6px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s,transform .1s;}
+    .btn:hover{opacity:.85;}.btn:active{transform:scale(.97);}
+    .btn-primary{background:var(--gold);color:#000;}
+    .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+    main{max-width:1000px;margin:0 auto;padding:28px 20px;}
+    section{margin-bottom:40px;}
+    h2{font-size:1rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+    .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+    .stat-label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+    .stat-value{font-size:1.6rem;font-weight:700;}
+    .leaderboard{display:flex;flex-direction:column;gap:8px;}
+    .lb-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:grid;grid-template-columns:36px 1fr 90px 90px 80px;align-items:center;gap:12px;}
+    .lb-row:hover{border-color:var(--gold);}
+    .lb-row.header-row{background:transparent;border-color:transparent;padding-top:0;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+    .lb-row.header-row:hover{border-color:transparent;}
+    .rank{font-size:.9rem;font-weight:700;color:var(--muted);text-align:center;}
+    .rank.gold{color:#f0c040;font-size:1.1rem;}.rank.silver{color:#a8b2bc;font-size:1.1rem;}.rank.bronze{color:#cd7f32;font-size:1.1rem;}
+    .player-name{font-weight:600;font-size:.97rem;}
+    .sessions-count{color:var(--muted);font-size:.83rem;}
+    .net{font-weight:700;font-size:1.05rem;text-align:right;}
+    .net.pos{color:var(--green);}.net.neg{color:var(--red);}.net.zero{color:var(--muted);}
+    .hands{text-align:right;color:var(--muted);font-size:.9rem;}
+    .winrate{text-align:right;font-size:.85rem;color:var(--muted);}
+    .session-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+    .session-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;gap:12px;}
+    .session-header:hover{background:var(--surface2);}
+    .session-date{font-weight:600;font-size:.97rem;}
+    .session-meta{color:var(--muted);font-size:.83rem;margin-top:2px;}
+    .session-summary{display:flex;gap:10px;align-items:center;}
+    .session-tag{font-size:.78rem;padding:3px 9px;border-radius:20px;font-weight:600;}
+    .tag-green{background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+    .tag-red{background:rgba(231,76,60,.15);color:var(--red);border:1px solid rgba(231,76,60,.3);}
+    .chevron{color:var(--muted);font-size:.8rem;transition:transform .2s;}
+    .chevron.open{transform:rotate(180deg);}
+    .session-body{display:none;border-top:1px solid var(--border);}
+    .session-body.open{display:block;}
+    .session-table{width:100%;border-collapse:collapse;}
+    .session-table th,.session-table td{padding:10px 18px;text-align:left;font-size:.88rem;}
+    .session-table th{color:var(--muted);font-weight:500;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);}
+    .session-table td{border-top:1px solid var(--border);}
+    .session-table tr:hover td{background:rgba(255,255,255,.02);}
+    .td-net{font-weight:700;}
+    .td-net.pos{color:var(--green);}.td-net.neg{color:var(--red);}.td-net.zero{color:var(--muted);}
+    .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+    .empty-icon{font-size:3rem;margin-bottom:12px;}
+    .empty h3{color:var(--text);margin-bottom:8px;font-size:1.1rem;}
+    .empty p{font-size:.9rem;line-height:1.6;max-width:420px;margin:0 auto;}
+    .setup-banner{background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.25);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .setup-banner p{font-size:.88rem;color:var(--text);}
+    .setup-banner p span{color:var(--gold);}
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px;}
+    .modal-bg.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;}
+    .modal h3{font-size:1.1rem;margin-bottom:6px;}
+    .modal .modal-sub{color:var(--muted);font-size:.85rem;margin-bottom:22px;line-height:1.5;}
+    .modal-footer{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;}
+    label{display:block;font-size:.83rem;color:var(--muted);margin-bottom:6px;margin-top:16px;}
+    input[type=text],input[type=password],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-size:.9rem;font-family:inherit;}
+    input[type=text]:focus,input[type=password]:focus,textarea:focus{outline:none;border-color:var(--gold);}
+    textarea{resize:vertical;min-height:120px;font-family:monospace;font-size:.82rem;}
+    .preview-table{width:100%;border-collapse:collapse;margin-top:14px;}
+    .preview-table th{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);}
+    .preview-table td{padding:8px 10px;font-size:.88rem;border-bottom:1px solid rgba(255,255,255,.04);}
+    .steps{display:flex;gap:6px;margin-bottom:20px;}
+    .step-dot{height:4px;border-radius:2px;flex:1;background:var(--border);transition:background .2s;}
+    .step-dot.active{background:var(--gold);}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .success-msg{color:var(--green);font-size:.9rem;text-align:center;padding:12px;}
+    .error-msg{color:var(--red);font-size:.88rem;padding:10px 14px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:6px;margin-top:12px;}
+    .player-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+    .player-row:last-child{border-bottom:none;}
+    .player-id-badge{font-size:.75rem;color:var(--muted);font-family:monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;flex-shrink:0;}
+    .player-row input{flex:1;padding:6px 10px;font-size:.88rem;}
+    @media(max-width:600px){.lb-row{grid-template-columns:28px 1fr 80px 70px;}.lb-row .winrate,.lb-row.header-row .winrate{display:none;}}
   </style>
 </head>
 <body>
@@ -145,6 +106,7 @@
   </div>
   <div class="header-actions">
     <span class="last-updated" id="lastUpdated"></span>
+    <button class="btn btn-ghost" onclick="openPlayers()" title="Manage players">👤</button>
     <button class="btn btn-ghost" onclick="openSettings()" title="Settings">⚙</button>
     <button class="btn btn-primary" onclick="openAddSession()">+ Add Session</button>
   </div>
@@ -153,28 +115,26 @@
 <main>
   <div id="setupBanner" style="display:none">
     <div class="setup-banner">
-      <p>⚡ <span>One-time setup:</span> Add your GitHub token so you can paste sessions directly from this page — no file uploads needed.</p>
+      <p>⚡ <span>One-time setup:</span> Add your GitHub token so you can paste sessions directly from this page.</p>
       <button class="btn btn-secondary" onclick="openSettings()">Set up now</button>
     </div>
   </div>
-  <div id="app">
-    <div class="empty"><div class="empty-icon">🃏</div><h3>Loading…</h3></div>
-  </div>
+  <div id="app"><div class="empty"><div class="empty-icon">🃏</div><h3>Loading…</h3></div></div>
 </main>
 
-<!-- ── Settings Modal ── -->
+<!-- Settings Modal -->
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
     <h3>⚙ Settings</h3>
     <p class="modal-sub">Connect to your GitHub repo so sessions can be saved directly from this page.</p>
     <label>GitHub username or org</label>
-    <input type="text" id="s_owner" placeholder="e.g. alexanderporter81-sketch" />
+    <input type="text" id="s_owner" placeholder="e.g. alexanderporter81-sketch"/>
     <label>Repository name</label>
-    <input type="text" id="s_repo" placeholder="e.g. poker-tracker" />
-    <label>GitHub Personal Access Token <span style="color:var(--muted);font-weight:400">(stored locally, never sent anywhere but GitHub)</span></label>
-    <input type="password" id="s_token" placeholder="ghp_xxxxxxxxxxxx" />
+    <input type="text" id="s_repo" placeholder="e.g. poker-tracker"/>
+    <label>GitHub Personal Access Token <span style="color:var(--muted);font-weight:400">(stored locally in your browser only)</span></label>
+    <input type="password" id="s_token" placeholder="ghp_xxxxxxxxxxxx"/>
     <p style="font-size:.8rem;color:var(--muted);margin-top:8px;line-height:1.5">
-      Create a token at <a href="https://github.com/settings/tokens/new?scopes=repo&description=poker-tracker" target="_blank" style="color:var(--gold)">github.com/settings/tokens</a> — select <strong>repo</strong> scope. Fine-grained tokens work too (Contents: read+write).
+      Create at <a href="https://github.com/settings/tokens/new?scopes=repo&description=poker-tracker" target="_blank" style="color:var(--gold)">github.com/settings/tokens</a> — select <strong>repo</strong> scope.
     </p>
     <div id="settingsError"></div>
     <div class="modal-footer">
@@ -184,7 +144,21 @@
   </div>
 </div>
 
-<!-- ── Add Session Modal ── -->
+<!-- Manage Players Modal -->
+<div class="modal-bg" id="playersModal">
+  <div class="modal">
+    <h3>👤 Manage Players</h3>
+    <p class="modal-sub">Set a real name for each player ID. The tracker will always use this name, no matter what nickname someone uses in a session.</p>
+    <div id="playersList"></div>
+    <div id="playersError"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('playersModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlayers()">Save names</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Session Modal -->
 <div class="modal-bg" id="addModal">
   <div class="modal">
     <div class="steps">
@@ -192,32 +166,29 @@
       <div class="step-dot" id="dot2"></div>
       <div class="step-dot" id="dot3"></div>
     </div>
-
-    <!-- Step 1: paste CSV -->
+    <!-- Step 1 -->
     <div id="step1">
       <h3>Add Session — Paste CSV</h3>
-      <p class="modal-sub">On the PokerNow results page, press <strong>Cmd+A</strong> then <strong>Cmd+C</strong> to copy everything, then paste it below.</p>
+      <p class="modal-sub">On the PokerNow results page, press <strong>Cmd+A</strong> then <strong>Cmd+C</strong>, then paste below.</p>
       <label>Paste CSV data</label>
-      <textarea id="csvPaste" placeholder="player_nickname,player_id,session_start_at,...&#10;&quot;JoHNNY&quot;,abc,2026-05-13T02:31..."></textarea>
+      <textarea id="csvPaste" placeholder="player_nickname,player_id,session_start_at,..."></textarea>
       <div id="parseError"></div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button>
         <button class="btn btn-primary" onclick="parseStep()">Parse →</button>
       </div>
     </div>
-
-    <!-- Step 2: preview + hands won -->
+    <!-- Step 2 -->
     <div id="step2" style="display:none">
       <h3>Confirm Results</h3>
-      <p class="modal-sub">Check the numbers look right. Optionally enter hands won for each player.</p>
+      <p class="modal-sub">Check the numbers and optionally enter hands won. New players show their PokerNow nickname — you can set a real name here.</p>
       <div id="previewArea"></div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
-        <button class="btn btn-primary" id="saveBtn" onclick="saveSession()">Save to tracker</button>
+        <button class="btn btn-primary" onclick="saveSession()">Save to tracker</button>
       </div>
     </div>
-
-    <!-- Step 3: saving -->
+    <!-- Step 3 -->
     <div id="step3" style="display:none;text-align:center;padding:20px 0">
       <div id="savingMsg"></div>
     </div>
@@ -225,112 +196,110 @@
 </div>
 
 <script>
-// ── Config ───────────────────────────────────────────────────────────────────
-const DATA_PATH = 'data/sessions.json';
+const DATA_PATH    = 'data/sessions.json';
+const PLAYERS_PATH = 'data/players.json';
 
-// ── Storage ──────────────────────────────────────────────────────────────────
-const store = {
-  get: k => localStorage.getItem('pt_' + k) || '',
-  set: (k, v) => localStorage.setItem('pt_' + k, v),
-};
+const store = { get: k=>localStorage.getItem('pt_'+k)||'', set:(k,v)=>localStorage.setItem('pt_'+k,v) };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const fmt   = n => (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-const fmtAbs= n => '$' + Math.abs(n).toFixed(2);
-const nc    = n => n > 0 ? 'pos' : n < 0 ? 'neg' : 'zero';
-const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmtDate = d => { if (!d) return '—'; const [y,m,day]=d.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+( +day)+', '+y; };
+const fmt    = n => (n>=0?'+$':'-$')+Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtAbs = n => '$'+Math.abs(n).toFixed(2);
+const nc     = n => n>0?'pos':n<0?'neg':'zero';
+const esc    = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate = d => { if(!d)return'—'; const[y,m,day]=d.split('-'); return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+(+day)+', '+y; };
 
-// ── CSV parser (browser-side) ─────────────────────────────────────────────────
+// ── Player name resolution ────────────────────────────────────────────────────
+let currentPlayers = {};   // { playerId: realName }
+let playersSha     = null;
+
+function resolveName(playerId, nickname) {
+  if (playerId && currentPlayers[playerId]) return currentPlayers[playerId];
+  return nickname;
+}
+
+// ── CSV parser ────────────────────────────────────────────────────────────────
 function parseCsvText(text) {
-  const lines = text.trim().split('\n').filter(l => l.trim());
+  const lines = text.trim().split('\n').filter(l=>l.trim());
   if (!lines.length) throw new Error('Empty input');
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
   const rows = lines.slice(1).map(line => {
-    // Handle quoted fields
-    const fields = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === '"') { inQ = !inQ; }
-      else if (line[i] === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
-      else cur += line[i];
+    const fields=[]; let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"'){inQ=!inQ;}
+      else if(line[i]===','&&!inQ){fields.push(cur.trim());cur='';}
+      else cur+=line[i];
     }
     fields.push(cur.trim());
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = (fields[i] || '').replace(/^"|"$/g,'').trim());
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=(fields[i]||'').replace(/^"|"$/g,'').trim());
     return obj;
   });
 
-  // Auto-detect date
-  let sessionDate = null;
-  const ts = rows[0]?.session_start_at || '';
-  const dm = ts.match(/(\d{4}-\d{2}-\d{2})/);
-  if (dm) sessionDate = dm[1];
+  let sessionDate=null;
+  const ts=rows[0]?.session_start_at||'';
+  const dm=ts.match(/(\d{4}-\d{2}-\d{2})/);
+  if(dm) sessionDate=dm[1];
 
-  // Detect format
-  const playersRaw = rows.map(r => {
-    let name, net, buyIn, buyOut;
-    const firstVal = Object.values(r)[0] || '';
-    if (firstVal.includes('@')) {
-      name   = firstVal.split('@')[0].trim();
-      net    = parseFloat(r.net || 0);
-      buyIn  = parseFloat(r.buy_in || r.buyin || 0);
-      buyOut = parseFloat(r.buy_out || r.buyout || 0);
+  const playersRaw=rows.map(r=>{
+    let name,playerId,net,buyIn,buyOut;
+    const firstVal=Object.values(r)[0]||'';
+    if(firstVal.includes('@')){
+      const parts=firstVal.split('@');
+      name=parts[0].trim(); playerId=parts[1]?.trim()||'';
+      net=parseFloat(r.net||0); buyIn=parseFloat(r.buy_in||r.buyin||0); buyOut=parseFloat(r.buy_out||r.buyout||0);
     } else {
-      name   = r.player_nickname || r.nickname || r.name || '';
-      net    = parseFloat(r.net || 0);
-      buyIn  = parseFloat(r.buy_in || r.buyin || 0);
-      buyOut = parseFloat(r.buy_out || r.buyout || 0);
+      name=r.player_nickname||r.nickname||r.name||'';
+      playerId=r.player_id||'';
+      net=parseFloat(r.net||0); buyIn=parseFloat(r.buy_in||r.buyin||0); buyOut=parseFloat(r.buy_out||r.buyout||0);
     }
-    return { name, net, buyIn, buyOut };
-  }).filter(p => p.name && !['player_nickname','player name','name'].includes(p.name.toLowerCase()));
+    return {name,playerId,net,buyIn,buyOut};
+  }).filter(p=>p.name&&!['player_nickname','player name','name'].includes(p.name.toLowerCase()));
 
-  if (!playersRaw.length) throw new Error('No players found — check the CSV format');
+  if(!playersRaw.length) throw new Error('No players found — check the CSV format');
 
-  // Cents detection
-  const avgBuyin = playersRaw.reduce((s,p) => s + p.buyIn, 0) / playersRaw.length;
-  const divisor  = avgBuyin >= 10000 ? 1000 : avgBuyin >= 1000 ? 100 : 1;
+  const avgBuyin=playersRaw.reduce((s,p)=>s+p.buyIn,0)/playersRaw.length;
+  const divisor=avgBuyin>=10000?1000:avgBuyin>=1000?100:1;
 
-  const players = playersRaw.map(p => ({
-    name:   p.name,
-    buyIn:  Math.round(p.buyIn  / divisor * 100) / 100,
-    buyOut: Math.round(p.buyOut / divisor * 100) / 100,
-    net:    Math.round(p.net    / divisor * 100) / 100,
-    handsWon: null,
+  const players=playersRaw.map(p=>({
+    name:      resolveName(p.playerId, p.name),
+    nickname:  p.name,
+    playerId:  p.playerId,
+    isNew:     p.playerId && !currentPlayers[p.playerId],
+    buyIn:     Math.round(p.buyIn /divisor*100)/100,
+    buyOut:    Math.round(p.buyOut/divisor*100)/100,
+    net:       Math.round(p.net   /divisor*100)/100,
+    handsWon:  null,
   }));
 
-  return { sessionDate: sessionDate || new Date().toISOString().slice(0,10), players };
+  return { sessionDate: sessionDate||new Date().toISOString().slice(0,10), players };
 }
 
 // ── Leaderboard + render ─────────────────────────────────────────────────────
 function buildLb(sessions) {
-  const p = {};
-  for (const s of sessions) for (const pl of (s.players||[])) {
-    if (!p[pl.name]) p[pl.name] = { name: pl.name, totalNet:0, totalHandsWon:0, sessions:0 };
-    p[pl.name].totalNet      += pl.net||0;
-    p[pl.name].totalHandsWon += pl.handsWon||0;
-    p[pl.name].sessions      += 1;
+  const p={};
+  for(const s of sessions) for(const pl of(s.players||[])){
+    const name=resolveName(pl.playerId,pl.name);
+    if(!p[name]) p[name]={name,totalNet:0,totalHandsWon:0,sessions:0};
+    p[name].totalNet      +=pl.net||0;
+    p[name].totalHandsWon +=pl.handsWon||0;
+    p[name].sessions      +=1;
   }
-  return Object.values(p).sort((a,b) => b.totalNet - a.totalNet);
+  return Object.values(p).sort((a,b)=>b.totalNet-a.totalNet);
 }
 
 function render(data) {
-  const sessions = (data.sessions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const lb = buildLb(sessions);
-  const app = document.getElementById('app');
-  const hasToken = !!store.get('token');
+  const sessions=(data.sessions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const lb=buildLb(sessions);
+  const app=document.getElementById('app');
+  document.getElementById('setupBanner').style.display=store.get('token')?'none':'block';
 
-  // Show setup banner if no token
-  document.getElementById('setupBanner').style.display = hasToken ? 'none' : 'block';
-
-  if (!sessions.length) {
-    app.innerHTML = `<div class="empty"><div class="empty-icon">🃏</div><h3>No sessions yet</h3><p>Click <strong>+ Add Session</strong> above to add your first game.</p></div>`;
+  if(!sessions.length){
+    app.innerHTML=`<div class="empty"><div class="empty-icon">🃏</div><h3>No sessions yet</h3><p>Click <strong>+ Add Session</strong> to add your first game.</p></div>`;
     return;
   }
 
-  const rankSym = i => ['🥇','🥈','🥉'][i] ?? (i+1);
-  const lbRows  = lb.map((p,i) => `
+  const rankSym=i=>['🥇','🥈','🥉'][i]??(i+1);
+  const lbRows=lb.map((p,i)=>`
     <div class="lb-row">
       <div class="rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${rankSym(i)}</div>
       <div><div class="player-name">${esc(p.name)}</div><div class="sessions-count">${p.sessions} session${p.sessions!==1?'s':''}</div></div>
@@ -339,10 +308,13 @@ function render(data) {
       <div class="winrate">${fmtAbs(p.totalNet/p.sessions)} / session</div>
     </div>`).join('');
 
-  const cards = sessions.map(s => {
-    const sp = (s.players||[]).slice().sort((a,b)=>b.net-a.net);
-    const rows = sp.map(p=>`<tr><td>${esc(p.name)}</td><td>$${p.buyIn?.toFixed(2)??'—'}</td><td class="td-net ${nc(p.net)}">${fmt(p.net)}</td><td style="color:var(--muted)">${p.handsWon!=null?p.handsWon:'—'}</td></tr>`).join('');
-    const pos=sp.filter(p=>p.net>0).length, neg=sp.filter(p=>p.net<0).length;
+  const cards=sessions.map(s=>{
+    const sp=(s.players||[]).slice().sort((a,b)=>b.net-a.net);
+    const rows=sp.map(p=>{
+      const name=resolveName(p.playerId,p.name);
+      return `<tr><td>${esc(name)}</td><td>$${p.buyIn?.toFixed(2)??'—'}</td><td class="td-net ${nc(p.net)}">${fmt(p.net)}</td><td style="color:var(--muted)">${p.handsWon!=null?p.handsWon:'—'}</td></tr>`;
+    }).join('');
+    const pos=sp.filter(p=>p.net>0).length,neg=sp.filter(p=>p.net<0).length;
     return `<div class="session-card">
       <div class="session-header" onclick="toggleSession(this)">
         <div><div class="session-date">${fmtDate(s.date)}</div><div class="session-meta">${sp.length} players · ${esc(s.note||'Private game')}</div></div>
@@ -356,8 +328,8 @@ function render(data) {
     </div>`;
   }).join('');
 
-  const bigWinner = lb[0];
-  app.innerHTML = `
+  const bigWinner=lb[0];
+  app.innerHTML=`
     <div class="stats-bar">
       <div class="stat-card"><div class="stat-label">Sessions played</div><div class="stat-value">${sessions.length}</div></div>
       <div class="stat-card"><div class="stat-label">Players tracked</div><div class="stat-value">${lb.length}</div></div>
@@ -373,160 +345,240 @@ function render(data) {
     <section><h2>Session history</h2>${cards}</section>`;
 }
 
-function toggleSession(header) {
-  const body = header.nextElementSibling, chevron = header.querySelector('.chevron');
-  chevron.classList.toggle('open', body.classList.toggle('open'));
+function toggleSession(header){
+  const body=header.nextElementSibling,chevron=header.querySelector('.chevron');
+  chevron.classList.toggle('open',body.classList.toggle('open'));
 }
 
 // ── Data fetch ────────────────────────────────────────────────────────────────
-let currentData = { lastUpdated:'', sessions:[] };
-let currentSha  = null;
+let currentData={lastUpdated:'',sessions:[]};
+let currentSha=null;
+
+async function ghGet(path) {
+  const owner=store.get('owner'),repo=store.get('repo'),token=store.get('token');
+  if(!owner||!repo||!token) return null;
+  const r=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+    headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}
+  });
+  if(!r.ok) return null;
+  return r.json();
+}
 
 async function load() {
-  const owner = store.get('owner'), repo = store.get('repo'), token = store.get('token');
-  // Try GitHub API first (gives us SHA for later writes)
-  if (owner && repo && token) {
-    try {
-      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${DATA_PATH}`, {
-        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-      });
-      if (r.ok) {
-        const meta = await r.json();
-        currentSha  = meta.sha;
-        currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
-        render(currentData);
-        if (currentData.lastUpdated) document.getElementById('lastUpdated').textContent = 'Updated ' + fmtDate(currentData.lastUpdated.slice(0,10));
-        return;
-      }
-    } catch(e) { /* fall through to public fetch */ }
-  }
-  // Fallback: public fetch (read-only mode)
+  // Load players.json first so name resolution works during render
   try {
-    const r = await fetch(DATA_PATH + '?t=' + Date.now());
-    if (!r.ok) throw new Error(r.status);
-    currentData = await r.json();
+    const pm=await ghGet(PLAYERS_PATH);
+    if(pm){
+      playersSha=pm.sha;
+      const pd=JSON.parse(atob(pm.content.replace(/\n/g,'')));
+      currentPlayers=pd.players||{};
+    }
+  } catch(e){}
+
+  // Load sessions
+  try {
+    const sm=await ghGet(DATA_PATH);
+    if(sm){
+      currentSha=sm.sha;
+      currentData=JSON.parse(atob(sm.content.replace(/\n/g,'')));
+      render(currentData);
+      if(currentData.lastUpdated) document.getElementById('lastUpdated').textContent='Updated '+fmtDate(currentData.lastUpdated.slice(0,10));
+      return;
+    }
+  } catch(e){}
+
+  // Public fallback
+  try {
+    const r=await fetch(DATA_PATH+'?t='+Date.now());
+    if(!r.ok) throw new Error(r.status);
+    currentData=await r.json();
     render(currentData);
-    if (currentData.lastUpdated) document.getElementById('lastUpdated').textContent = 'Updated ' + fmtDate(currentData.lastUpdated.slice(0,10));
-  } catch(e) {
-    document.getElementById('setupBanner').style.display = 'block';
-    document.getElementById('app').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><h3>Couldn't load data</h3><p>Make sure GitHub Pages is enabled and sessions.json exists in the repo.</p></div>`;
+    if(currentData.lastUpdated) document.getElementById('lastUpdated').textContent='Updated '+fmtDate(currentData.lastUpdated.slice(0,10));
+  } catch(e){
+    document.getElementById('setupBanner').style.display='block';
+    document.getElementById('app').innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><h3>Couldn't load data</h3><p>Make sure GitHub Pages is enabled and sessions.json exists in the repo.</p></div>`;
   }
 }
 
-// ── Settings ─────────────────────────────────────────────────────────────────
-function openSettings() {
-  document.getElementById('s_owner').value = store.get('owner');
-  document.getElementById('s_repo').value  = store.get('repo');
-  document.getElementById('s_token').value = store.get('token');
+// ── Settings ──────────────────────────────────────────────────────────────────
+function openSettings(){
+  document.getElementById('s_owner').value=store.get('owner');
+  document.getElementById('s_repo').value=store.get('repo');
+  document.getElementById('s_token').value=store.get('token');
   document.getElementById('settingsModal').classList.add('open');
 }
-function saveSettings() {
-  const owner = document.getElementById('s_owner').value.trim();
-  const repo  = document.getElementById('s_repo').value.trim();
-  const token = document.getElementById('s_token').value.trim();
-  if (!owner || !repo || !token) { document.getElementById('settingsError').innerHTML = '<div class="error-msg">All fields are required.</div>'; return; }
-  store.set('owner', owner); store.set('repo', repo); store.set('token', token);
-  closeModal('settingsModal');
-  load();
+function saveSettings(){
+  const owner=document.getElementById('s_owner').value.trim();
+  const repo=document.getElementById('s_repo').value.trim();
+  const token=document.getElementById('s_token').value.trim();
+  if(!owner||!repo||!token){document.getElementById('settingsError').innerHTML='<div class="error-msg">All fields are required.</div>';return;}
+  store.set('owner',owner);store.set('repo',repo);store.set('token',token);
+  closeModal('settingsModal');load();
 }
 
-// ── Add session flow ──────────────────────────────────────────────────────────
-let parsedSession = null;
+// ── Manage Players ────────────────────────────────────────────────────────────
+function openPlayers(){
+  // Collect all known player IDs from sessions + currentPlayers
+  const known=new Map(Object.entries(currentPlayers));
+  for(const s of(currentData.sessions||[])) for(const p of(s.players||[])){
+    if(p.playerId&&!known.has(p.playerId)) known.set(p.playerId,p.name);
+  }
+  if(!known.size){
+    document.getElementById('playersList').innerHTML='<p style="color:var(--muted);font-size:.88rem;margin-top:12px">No players yet — add a session first.</p>';
+  } else {
+    document.getElementById('playersList').innerHTML=[...known.entries()].map(([id,name])=>`
+      <div class="player-row">
+        <span class="player-id-badge">${esc(id)}</span>
+        <input type="text" value="${esc(name)}" data-pid="${esc(id)}" placeholder="Real name"/>
+      </div>`).join('');
+  }
+  document.getElementById('playersError').innerHTML='';
+  document.getElementById('playersModal').classList.add('open');
+}
 
-function openAddSession() {
-  if (!store.get('token')) { openSettings(); return; }
+async function savePlayers(){
+  const inputs=document.querySelectorAll('#playersList input[data-pid]');
+  const newMap={};
+  inputs.forEach(inp=>{ if(inp.value.trim()) newMap[inp.dataset.pid]=inp.value.trim(); });
+  currentPlayers=newMap;
+
+  const owner=store.get('owner'),repo=store.get('repo'),token=store.get('token');
+  if(!owner||!repo||!token){closeModal('playersModal');render(currentData);return;}
+
+  try {
+    const fileContent={_instructions:'Map PokerNow player IDs to real names.',players:newMap};
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(fileContent,null,2))));
+    const body={message:'Update player name mappings',content};
+    if(playersSha) body.sha=playersSha;
+    const r=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${PLAYERS_PATH}`,{
+      method:'PUT',
+      headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const result=await r.json();
+    if(!r.ok) throw new Error(result.message||r.status);
+    playersSha=result.content?.sha;
+    closeModal('playersModal');
+    render(currentData);
+  } catch(e){
+    document.getElementById('playersError').innerHTML=`<div class="error-msg">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+// ── Add session ───────────────────────────────────────────────────────────────
+let parsedSession=null;
+
+function openAddSession(){
+  if(!store.get('token')){openSettings();return;}
   goStep(1);
-  document.getElementById('csvPaste').value = '';
-  document.getElementById('parseError').innerHTML = '';
+  document.getElementById('csvPaste').value='';
+  document.getElementById('parseError').innerHTML='';
   document.getElementById('addModal').classList.add('open');
 }
 
-function goStep(n) {
-  [1,2,3].forEach(i => {
-    document.getElementById('step'+i).style.display = i===n ? 'block' : 'none';
-    document.getElementById('dot'+i).classList.toggle('active', i<=n);
+function goStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('step'+i).style.display=i===n?'block':'none';
+    document.getElementById('dot'+i).classList.toggle('active',i<=n);
   });
 }
 
-function parseStep() {
-  const text = document.getElementById('csvPaste').value.trim();
-  document.getElementById('parseError').innerHTML = '';
-  try {
-    parsedSession = parseCsvText(text);
-  } catch(e) {
-    document.getElementById('parseError').innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
-    return;
-  }
+function parseStep(){
+  const text=document.getElementById('csvPaste').value.trim();
+  document.getElementById('parseError').innerHTML='';
+  try{ parsedSession=parseCsvText(text); }
+  catch(e){ document.getElementById('parseError').innerHTML=`<div class="error-msg">${esc(e.message)}</div>`;return; }
   renderPreview();
   goStep(2);
 }
 
-function renderPreview() {
-  const { sessionDate, players } = parsedSession;
-  const rows = players.map((p,i) => `
+function renderPreview(){
+  const {sessionDate,players}=parsedSession;
+  const hasNew=players.some(p=>p.isNew);
+  const rows=players.map((p,i)=>`
     <tr>
-      <td>${esc(p.name)}</td>
+      <td>
+        ${hasNew&&p.isNew
+          ? `<input type="text" value="${esc(p.nickname)}" id="rn_${i}" style="width:120px;background:var(--surface2);border:1px solid var(--gold);border-radius:4px;color:var(--text);padding:4px 8px;font-size:.85rem" title="Set real name for this player"/>`
+          : esc(p.name)}
+      </td>
       <td>$${p.buyIn.toFixed(2)}</td>
       <td class="td-net ${nc(p.net)}" style="font-weight:700">${fmt(p.net)}</td>
-      <td><input type="number" min="0" placeholder="—" id="hw_${i}" style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px;font-size:.85rem" /></td>
+      <td><input type="number" min="0" placeholder="—" id="hw_${i}" style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px;font-size:.85rem"/></td>
     </tr>`).join('');
 
-  document.getElementById('previewArea').innerHTML = `
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">Session: <strong style="color:var(--text)">${fmtDate(sessionDate)}</strong></p>
+  document.getElementById('previewArea').innerHTML=`
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">Session: <strong style="color:var(--text)">${fmtDate(sessionDate)}</strong>${hasNew?' · <span style="color:var(--gold)">✏ New players — set real names in the highlighted fields</span>':''}</p>
     <table class="preview-table">
       <thead><tr><th>Player</th><th>Buy-in</th><th>Net</th><th>Hands won</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-async function saveSession() {
-  const { sessionDate, players } = parsedSession;
-  // Collect hands won
-  players.forEach((p, i) => {
-    const val = document.getElementById('hw_'+i)?.value;
-    p.handsWon = val && !isNaN(val) ? parseInt(val) : null;
+async function saveSession(){
+  const {sessionDate,players}=parsedSession;
+  const newMappings={...currentPlayers};
+  let mappingsChanged=false;
+
+  players.forEach((p,i)=>{
+    const hwVal=document.getElementById('hw_'+i)?.value;
+    p.handsWon=hwVal&&!isNaN(hwVal)?parseInt(hwVal):null;
+    // Collect real name inputs for new players
+    const rnInput=document.getElementById('rn_'+i);
+    if(rnInput&&p.playerId){
+      const realName=rnInput.value.trim()||p.nickname;
+      p.name=realName;
+      if(realName!==newMappings[p.playerId]){ newMappings[p.playerId]=realName; mappingsChanged=true; }
+    }
   });
 
-  const newSession = { id: sessionDate, date: sessionDate, note: 'Private game', players };
-
-  // Merge into existing data
-  const data = JSON.parse(JSON.stringify(currentData));
-  data.sessions = data.sessions.filter(s => s.id !== sessionDate);
+  const sessionPlayers=players.map(p=>({name:p.name,playerId:p.playerId,buyIn:p.buyIn,buyOut:p.buyOut,net:p.net,handsWon:p.handsWon}));
+  const newSession={id:sessionDate,date:sessionDate,note:'Private game',players:sessionPlayers};
+  const data=JSON.parse(JSON.stringify(currentData));
+  data.sessions=data.sessions.filter(s=>s.id!==sessionDate);
   data.sessions.push(newSession);
-  data.sessions.sort((a,b) => a.date.localeCompare(b.date));
-  data.lastUpdated = new Date().toISOString().slice(0,10);
+  data.sessions.sort((a,b)=>a.date.localeCompare(b.date));
+  data.lastUpdated=new Date().toISOString().slice(0,10);
 
   goStep(3);
-  document.getElementById('savingMsg').innerHTML = '<span class="spinner"></span> Saving to GitHub…';
+  document.getElementById('savingMsg').innerHTML='<span class="spinner"></span> Saving to GitHub…';
+
+  const owner=store.get('owner'),repo=store.get('repo'),token=store.get('token');
+  const ghPut=async(path,sha,content,message)=>{
+    const body={message,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2))))};
+    if(sha) body.sha=sha;
+    const r=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+      method:'PUT',
+      headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const result=await r.json();
+    if(!r.ok) throw new Error(result.message||r.status);
+    return result;
+  };
 
   try {
-    const owner = store.get('owner'), repo = store.get('repo'), token = store.get('token');
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-    const body = { message: `Add session ${sessionDate}`, content };
-    if (currentSha) body.sha = currentSha;
-
-    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${DATA_PATH}`, {
-      method: 'PUT',
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const result = await r.json();
-    if (!r.ok) throw new Error(result.message || r.status);
-
-    currentSha = result.content?.sha;
-    currentData = data;
+    // Save players.json if mappings changed
+    if(mappingsChanged){
+      const result=await ghPut(PLAYERS_PATH,playersSha,{_instructions:'Map PokerNow player IDs to real names.',players:newMappings},`Update player mappings`);
+      playersSha=result.content?.sha;
+      currentPlayers=newMappings;
+    }
+    // Save sessions.json
+    const result=await ghPut(DATA_PATH,currentSha,data,`Add session ${sessionDate}`);
+    currentSha=result.content?.sha;
+    currentData=data;
     render(currentData);
-    document.getElementById('lastUpdated').textContent = 'Updated just now';
-    document.getElementById('savingMsg').innerHTML = '<div class="success-msg">✓ Session saved! Tracker updated.</div>';
-    setTimeout(() => closeModal('addModal'), 1800);
-  } catch(e) {
-    document.getElementById('savingMsg').innerHTML = `<div class="error-msg">❌ ${esc(e.message)}</div><div class="modal-footer" style="justify-content:center"><button class="btn btn-ghost" onclick="goStep(2)">← Back</button></div>`;
+    document.getElementById('lastUpdated').textContent='Updated just now';
+    document.getElementById('savingMsg').innerHTML='<div class="success-msg">✓ Session saved!</div>';
+    setTimeout(()=>closeModal('addModal'),1600);
+  } catch(e){
+    document.getElementById('savingMsg').innerHTML=`<div class="error-msg">❌ ${esc(e.message)}</div><div class="modal-footer" style="justify-content:center"><button class="btn btn-ghost" onclick="goStep(2)">← Back</button></div>`;
   }
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); }));
-
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 load();
 </script>
 </body>
