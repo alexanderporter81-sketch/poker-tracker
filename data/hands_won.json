@@ -1,0 +1,10 @@
+{
+  "_instructions": "Add entries here to record hands won per session. Format: 'YYYY-MM-DD': { 'PlayerName': handsWon }. Then commit this file alongside the session CSV.",
+  "_example": {
+    "2026-05-13": {
+      "Alex": 15,
+      "Bob": 8,
+      "Charlie": 6
+    }
+  }
+}

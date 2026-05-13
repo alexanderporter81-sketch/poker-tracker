@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Poker Tracker</title>
+  <style>
+    :root {
+      --green:   #27ae60;
+      --red:     #e74c3c;
+      --gold:    #f0c040;
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --surface2:#1c2330;
+      --border:  #30363d;
+      --text:    #e6edf3;
+      --muted:   #7d8590;
+      --radius:  10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+    .logo-icon { font-size: 1.6rem; }
+    .subtitle { color: var(--muted); font-size: .85rem; margin-top: 2px; font-weight: 400; }
+    .last-updated { color: var(--muted); font-size: .8rem; }
+
+    /* ── Layout ── */
+    main { max-width: 1000px; margin: 0 auto; padding: 28px 20px; }
+    section { margin-bottom: 40px; }
+    h2 { font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .stat-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; }
+
+    /* ── Leaderboard ── */
+    .leaderboard { display: flex; flex-direction: column; gap: 8px; }
+    .lb-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 36px 1fr 90px 90px 80px;
+      align-items: center;
+      gap: 12px;
+      transition: border-color .15s;
+      cursor: default;
+    }
+    .lb-row:hover { border-color: var(--gold); }
+    .lb-row.header-row {
+      background: transparent;
+      border-color: transparent;
+      padding-top: 0;
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      cursor: default;
+    }
+    .lb-row.header-row:hover { border-color: transparent; }
+    .rank { font-size: .9rem; font-weight: 700; color: var(--muted); text-align: center; }
+    .rank.gold   { color: #f0c040; font-size: 1.1rem; }
+    .rank.silver { color: #a8b2bc; font-size: 1.1rem; }
+    .rank.bronze { color: #cd7f32; font-size: 1.1rem; }
+    .player-name { font-weight: 600; font-size: .97rem; }
+    .sessions-count { color: var(--muted); font-size: .83rem; }
+    .net { font-weight: 700; font-size: 1.05rem; text-align: right; }
+    .net.pos { color: var(--green); }
+    .net.neg { color: var(--red); }
+    .net.zero { color: var(--muted); }
+    .hands { text-align: right; color: var(--muted); font-size: .9rem; }
+    .winrate { text-align: right; font-size: .85rem; color: var(--muted); }
+
+    /* ── Sessions ── */
+    .session-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .session-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      gap: 12px;
+    }
+    .session-header:hover { background: var(--surface2); }
+    .session-date { font-weight: 600; font-size: .97rem; }
+    .session-meta { color: var(--muted); font-size: .83rem; margin-top: 2px; }
+    .session-summary { display: flex; gap: 16px; align-items: center; }
+    .session-tag {
+      font-size: .78rem;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .tag-green { background: rgba(39,174,96,.15); color: var(--green); border: 1px solid rgba(39,174,96,.3); }
+    .tag-red   { background: rgba(231,76,60,.15);  color: var(--red);   border: 1px solid rgba(231,76,60,.3); }
+    .chevron { color: var(--muted); font-size: .8rem; transition: transform .2s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .session-body { display: none; border-top: 1px solid var(--border); }
+    .session-body.open { display: block; }
+    .session-table { width: 100%; border-collapse: collapse; }
+    .session-table th, .session-table td {
+      padding: 10px 18px;
+      text-align: left;
+      font-size: .88rem;
+    }
+    .session-table th {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      background: var(--surface2);
+    }
+    .session-table td { border-top: 1px solid var(--border); }
+    .session-table tr:hover td { background: rgba(255,255,255,.02); }
+    .td-net { font-weight: 700; }
+    .td-net.pos { color: var(--green); }
+    .td-net.neg { color: var(--red); }
+    .td-net.zero { color: var(--muted); }
+
+    /* ── Empty / error states ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem; }
+    .empty p { font-size: .9rem; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+    .empty code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: .85em;
+      color: var(--gold);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .lb-row { grid-template-columns: 28px 1fr 80px 70px; }
+      .lb-row .winrate { display: none; }
+      .lb-row.header-row .winrate { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo"><span class="logo-icon">♠</span> Poker Tracker <span style="color:var(--muted);font-weight:400">— Private Game</span></div>
+    <div class="subtitle">Updated after every session</div>
+  </div>
+  <div class="last-updated" id="lastUpdated"></div>
+</header>
+
+<main>
+  <div id="app">
+    <div class="empty">
+      <div class="empty-icon">🃏</div>
+      <h3>Loading tracker…</h3>
+      <p>Fetching session data.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+// ────────────────────────────────────────────────────────────────────────────
+// Config — edit DATA_URL to point at your sessions.json once hosted
+// If running locally, keep it as-is (relative path).
+// ────────────────────────────────────────────────────────────────────────────
+const DATA_URL = 'data/sessions.json';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmt(n) {
+  const abs = Math.abs(n).toFixed(2);
+  return (n >= 0 ? '+$' : '-$') + parseFloat(abs).toLocaleString('en-US', {minimumFractionDigits: 2});
+}
+function fmtAbs(n) {
+  return '$' + Math.abs(n).toFixed(2);
+}
+function netClass(n) {
+  if (n > 0) return 'pos';
+  if (n < 0) return 'neg';
+  return 'zero';
+}
+function formatDate(d) {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[+m-1]} ${+day}, ${y}`;
+}
+
+// ── Build leaderboard data from sessions ─────────────────────────────────────
+function buildLeaderboard(sessions) {
+  const players = {};
+  for (const s of sessions) {
+    for (const p of (s.players || [])) {
+      if (!players[p.name]) {
+        players[p.name] = { name: p.name, totalNet: 0, totalHandsWon: 0, sessions: 0 };
+      }
+      players[p.name].totalNet       += p.net || 0;
+      players[p.name].totalHandsWon  += p.handsWon || 0;
+      players[p.name].sessions       += 1;
+    }
+  }
+  return Object.values(players).sort((a, b) => b.totalNet - a.totalNet);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(data) {
+  const sessions = (data.sessions || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const lb       = buildLeaderboard(sessions);
+  const app      = document.getElementById('app');
+
+  if (sessions.length === 0) {
+    app.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🃏</div>
+        <h3>No sessions yet</h3>
+        <p>Add your first PokerNow session by dropping a ledger CSV into the
+        <code>sessions/</code> folder in the GitHub repo, or by running
+        <code>python scripts/add_session.py</code> locally.</p>
+      </div>`;
+    return;
+  }
+
+  // Stats bar
+  const totalSessions = sessions.length;
+  const totalPlayers  = lb.length;
+  const biggestWin    = lb.reduce((m,p) => p.totalNet > m ? p.totalNet : m, 0);
+  const biggestWinner = lb.find(p => p.totalNet === biggestWin);
+
+  // Leaderboard rows
+  const rankSymbol = i => ['🥇','🥈','🥉'][i] ?? (i+1);
+  const lbRows = lb.map((p, i) => `
+    <div class="lb-row">
+      <div class="rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${rankSymbol(i)}</div>
+      <div>
+        <div class="player-name">${esc(p.name)}</div>
+        <div class="sessions-count">${p.sessions} session${p.sessions!==1?'s':''}</div>
+      </div>
+      <div class="net ${netClass(p.totalNet)}">${fmt(p.totalNet)}</div>
+      <div class="hands">${p.totalHandsWon > 0 ? p.totalHandsWon+' hands' : '—'}</div>
+      <div class="winrate">${fmtAbs(p.totalNet / p.sessions)} / session</div>
+    </div>`).join('');
+
+  // Session cards
+  const sessionCards = sessions.map(s => {
+    const sortedPlayers = (s.players||[]).slice().sort((a,b) => b.net - a.net);
+    const bigPos  = sortedPlayers.filter(p=>p.net>0).length;
+    const bigNeg  = sortedPlayers.filter(p=>p.net<0).length;
+    const rows = sortedPlayers.map(p => `
+      <tr>
+        <td>${esc(p.name)}</td>
+        <td>$${p.buyIn?.toFixed(2) ?? '—'}</td>
+        <td class="td-net ${netClass(p.net)}">${fmt(p.net)}</td>
+        <td style="color:var(--muted)">${p.handsWon != null ? p.handsWon : '—'}</td>
+      </tr>`).join('');
+
+    return `
+      <div class="session-card">
+        <div class="session-header" onclick="toggleSession(this)">
+          <div>
+            <div class="session-date">${formatDate(s.date)}</div>
+            <div class="session-meta">${sortedPlayers.length} players · ${s.note ? esc(s.note) : 'Private game'}</div>
+          </div>
+          <div class="session-summary">
+            ${bigPos>0 ? `<span class="session-tag tag-green">▲ ${bigPos} up</span>` : ''}
+            ${bigNeg>0 ? `<span class="session-tag tag-red">▼ ${bigNeg} down</span>` : ''}
+            <span class="chevron">▼</span>
+          </div>
+        </div>
+        <div class="session-body">
+          <table class="session-table">
+            <thead><tr><th>Player</th><th>Buy-in</th><th>Net</th><th>Hands won</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Sessions played</div>
+        <div class="stat-value">${totalSessions}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Players tracked</div>
+        <div class="stat-value">${totalPlayers}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">All-time leader</div>
+        <div class="stat-value" style="font-size:1.2rem">${biggestWinner ? esc(biggestWinner.name) : '—'}</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Leaderboard</h2>
+      <div class="leaderboard">
+        <div class="lb-row header-row">
+          <div></div><div>Player</div><div style="text-align:right">Net P&L</div>
+          <div style="text-align:right">Hands won</div><div style="text-align:right">Avg / session</div>
+        </div>
+        ${lbRows}
+      </div>
+    </section>
+
+    <section>
+      <h2>Session history</h2>
+      ${sessionCards}
+    </section>`;
+}
+
+function toggleSession(header) {
+  const body    = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  const open    = body.classList.toggle('open');
+  chevron.classList.toggle('open', open);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Fetch data ────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const resp = await fetch(DATA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error(resp.status);
+    const data = await resp.json();
+    render(data);
+    const ts = data.lastUpdated;
+    if (ts) document.getElementById('lastUpdated').textContent = 'Updated ' + formatDate(ts.slice(0,10));
+  } catch (e) {
+    document.getElementById('app').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <h3>Couldn't load session data</h3>
+        <p>Make sure <code>data/sessions.json</code> exists in the repo and GitHub Pages is enabled.
+        If you're previewing locally, open the page through a local server (e.g.
+        <code>python3 -m http.server</code>).</p>
+      </div>`;
+  }
+}
+
+load();
+</script>
+</body>
+</html>
