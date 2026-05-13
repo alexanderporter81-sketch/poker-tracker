@@ -7,28 +7,32 @@
       "note": "Private game",
       "players": [
         {
-          "name": "JoHNNY",
+          "name": "Jons",
+          "playerId": "imfBKvRwT1",
           "buyIn": 50,
           "buyOut": 0,
           "net": 30,
           "handsWon": null
         },
         {
-          "name": "GUNGUN",
+          "name": "AlPo",
+          "playerId": "EWYQC1gKCB",
           "buyIn": 50,
           "buyOut": 0,
           "net": -5.4,
           "handsWon": null
         },
         {
-          "name": "Gunner",
+          "name": "GunGun",
+          "playerId": "K5Z8P1gBJh",
           "buyIn": 50,
           "buyOut": 0,
           "net": -10.95,
           "handsWon": null
         },
         {
-          "name": "Austin",
+          "name": "'stin",
+          "playerId": "AhymCtHL_H",
           "buyIn": 50,
           "buyOut": 0,
           "net": -13.65,
