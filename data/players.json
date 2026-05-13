@@ -1,4 +1,4 @@
 {
-  "_instructions": "Map PokerNow player IDs to real names. The tracker will always use the real name regardless of what nickname someone used in a session. Player IDs come from the player_id column in PokerNow's CSV export.",
+  "_instructions": "Map PokerNow player IDs to real names.",
   "players": {}
 }
