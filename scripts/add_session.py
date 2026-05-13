@@ -27,47 +27,63 @@ SESSIONS_DIR = REPO_ROOT / "sessions"
 DATA_FILE    = REPO_ROOT / "data" / "sessions.json"
 
 # ── Parse PokerNow CSV ────────────────────────────────────────────────────────
-def parse_pokernow_csv(filepath: str) -> list[dict]:
+def detect_cents(players_raw: list[dict]) -> bool:
+    buy_ins = [p['buy_in'] for p in players_raw if p['buy_in'] > 0]
+    return bool(buy_ins) and (sum(buy_ins) / len(buy_ins)) >= 1000
+
+
+def parse_pokernow_csv(filepath: str) -> tuple[list[dict], str | None]:
     """
-    Returns a list of dicts: {name, buyIn, buyOut, net}
-    Handles both PokerNow export formats automatically.
+    Returns (players, auto_detected_date_or_None).
+    Handles both PokerNow export formats and auto-converts cents to dollars.
     """
-    players = []
+    players_raw = []
+    auto_date = None
+
     with open(filepath, newline='', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
-        headers = [h.strip().lower().replace('"','') for h in reader.fieldnames or []]
-
         for row in reader:
-            # Normalise keys
-            clean = {k.strip().lower().replace('"',''): v.strip().strip('"') for k, v in row.items()}
+            clean = {k.strip().lower().replace('"',''): str(v).strip().strip('"') for k, v in row.items()}
 
-            # Detect format
-            # Format A: first column is "Player name @ id"
-            first_key = list(clean.keys())[0]
-            if '@' in str(list(clean.values())[0]):
-                raw_name = list(clean.values())[0]
-                name = raw_name.split('@')[0].strip()
-                net    = float(clean.get('net', 0))
-                buy_in = float(clean.get('buy_in', clean.get('buyin', 0)))
-                buy_out= float(clean.get('buy_out', clean.get('buyout', 0)))
+            # Auto-detect date from session_start_at
+            if not auto_date:
+                ts = clean.get('session_start_at', '')
+                m = re.match(r'(\d{4}-\d{2}-\d{2})', ts)
+                if m:
+                    auto_date = m.group(1)
+
+            first_val = str(list(clean.values())[0])
+            if '@' in first_val:
+                name    = first_val.split('@')[0].strip()
+                net     = float(clean.get('net', 0) or 0)
+                buy_in  = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
+                buy_out = float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
             else:
-                # Format B
-                name   = clean.get('player_nickname', clean.get('nickname', clean.get('name', 'Unknown')))
-                net    = float(clean.get('net', 0))
-                buy_in = float(clean.get('buy_in', clean.get('buyin', 0)))
-                buy_out= float(clean.get('buy_out', clean.get('buyout', 0)))
+                name    = clean.get('player_nickname', clean.get('nickname', clean.get('name', 'Unknown')))
+                net     = float(clean.get('net', 0) or 0)
+                buy_in  = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
+                buy_out = float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
 
             if not name or name.lower() in ('player_nickname', 'player name'):
                 continue
 
-            players.append({
-                'name':   name,
-                'buyIn':  round(buy_in, 2),
-                'buyOut': round(buy_out, 2),
-                'net':    round(net, 2),
-            })
+            players_raw.append({'name': name, 'buy_in': buy_in, 'buy_out': buy_out, 'net': net})
 
-    return players
+    if not players_raw:
+        return [], auto_date
+
+    divisor = 100.0 if detect_cents(players_raw) else 1.0
+    if divisor == 100.0:
+        print("  (detected cent values — converting to dollars automatically)")
+
+    players = [{
+        'name':   p['name'],
+        'buyIn':  round(p['buy_in']  / divisor, 2),
+        'buyOut': round(p['buy_out'] / divisor, 2),
+        'net':    round(p['net']     / divisor, 2),
+    } for p in players_raw]
+
+    return players, auto_date
 
 
 # ── Prompt for hands won ──────────────────────────────────────────────────────
@@ -117,7 +133,12 @@ def main():
 
     # Parse CSV
     print(f"\nReading: {csv_path}")
-    players = parse_pokernow_csv(csv_path)
+    players, auto_date = parse_pokernow_csv(csv_path)
+
+    # Use date from CSV if not provided on command line
+    if auto_date and session_date == date.today().isoformat():
+        session_date = auto_date
+        print(f"  Auto-detected session date from CSV: {session_date}")
 
     if not players:
         print("No players found in CSV. Check the file format.")

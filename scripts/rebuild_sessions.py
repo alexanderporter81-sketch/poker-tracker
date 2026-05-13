@@ -27,42 +27,77 @@ DATA_FILE     = REPO_ROOT / "data" / "sessions.json"
 HANDS_FILE    = REPO_ROOT / "data" / "hands_won.json"
 
 
-def parse_pokernow_csv(filepath: Path) -> list[dict]:
-    players = []
+def detect_cents(players_raw: list[dict]) -> bool:
+    """PokerNow exports values in cents (50000 = $500). Detect this by checking
+    if buy_in values are suspiciously large (>= 1000 suggests cents)."""
+    buy_ins = [p['buy_in'] for p in players_raw if p['buy_in'] > 0]
+    return bool(buy_ins) and (sum(buy_ins) / len(buy_ins)) >= 1000
+
+
+def parse_pokernow_csv(filepath: Path) -> tuple[list[dict], str | None]:
+    """Returns (players, session_date_or_None)."""
+    players_raw = []
+    session_date = None
     try:
         with open(filepath, newline='', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             if not reader.fieldnames:
-                return []
+                return [], None
             for row in reader:
                 clean = {k.strip().lower().replace('"', ''): str(v).strip().strip('"')
                          for k, v in row.items()}
 
-                # Format A: first value contains '@'
+                # Auto-detect session date from session_start_at column
+                if not session_date:
+                    ts = clean.get('session_start_at', '')
+                    date_match = re.match(r'(\d{4}-\d{2}-\d{2})', ts)
+                    if date_match:
+                        session_date = date_match.group(1)
+
+                # Format A: first value contains '@' (older PokerNow export)
                 first_val = list(clean.values())[0]
                 if '@' in first_val:
-                    name   = first_val.split('@')[0].strip()
-                    net    = float(clean.get('net', 0) or 0)
-                    buy_in = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
-                    buy_out= float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
+                    name    = first_val.split('@')[0].strip()
+                    net     = float(clean.get('net', 0) or 0)
+                    buy_in  = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
+                    buy_out = float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
                 else:
-                    name   = clean.get('player_nickname', clean.get('nickname', clean.get('name', '')))
-                    net    = float(clean.get('net', 0) or 0)
-                    buy_in = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
-                    buy_out= float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
+                    # Format B: player_nickname column (current PokerNow export)
+                    name    = clean.get('player_nickname', clean.get('nickname', clean.get('name', '')))
+                    net     = float(clean.get('net', 0) or 0)
+                    buy_in  = float(clean.get('buy_in', clean.get('buyin', 0)) or 0)
+                    buy_out = float(clean.get('buy_out', clean.get('buyout', 0)) or 0)
 
                 if not name or name.lower() in ('player_nickname', 'player name', 'name', ''):
                     continue
 
-                players.append({
-                    'name':   name,
-                    'buyIn':  round(buy_in, 2),
-                    'buyOut': round(buy_out, 2),
-                    'net':    round(net, 2),
+                players_raw.append({
+                    'name':    name,
+                    'buy_in':  buy_in,
+                    'buy_out': buy_out,
+                    'net':     net,
                 })
+
     except Exception as e:
         print(f"  Warning: could not parse {filepath.name}: {e}")
-    return players
+        return [], None
+
+    if not players_raw:
+        return [], session_date
+
+    # Convert cents → dollars if needed
+    divisor = 100.0 if detect_cents(players_raw) else 1.0
+    if divisor == 100.0:
+        print(f"  (values look like cents — dividing by 100 to get dollars)")
+
+    players = [{
+        'name':   p['name'],
+        'buyIn':  round(p['buy_in']  / divisor, 2),
+        'buyOut': round(p['buy_out'] / divisor, 2),
+        'net':    round(p['net']     / divisor, 2),
+    } for p in players_raw]
+
+    return players, session_date
 
 
 def main():
@@ -87,7 +122,10 @@ def main():
             continue
 
         session_date = date_match.group(1)
-        players = parse_pokernow_csv(csv_path)
+        players, csv_date = parse_pokernow_csv(csv_path)
+        # Use date from CSV contents if filename didn't have a full date
+        if csv_date and not date_match:
+            session_date = csv_date
         if not players:
             print(f"  Skipping {csv_path.name} (no players found)")
             continue
