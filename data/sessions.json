@@ -1,4 +1,40 @@
 {
-  "lastUpdated": "",
-  "sessions": []
+  "lastUpdated": "2026-05-13",
+  "sessions": [
+    {
+      "id": "2026-05-13",
+      "date": "2026-05-13",
+      "note": "Private game",
+      "players": [
+        {
+          "name": "JoHNNY",
+          "buyIn": 50,
+          "buyOut": 0,
+          "net": 30,
+          "handsWon": null
+        },
+        {
+          "name": "GUNGUN",
+          "buyIn": 50,
+          "buyOut": 0,
+          "net": -5.4,
+          "handsWon": null
+        },
+        {
+          "name": "Gunner",
+          "buyIn": 50,
+          "buyOut": 0,
+          "net": -10.95,
+          "handsWon": null
+        },
+        {
+          "name": "Austin",
+          "buyIn": 50,
+          "buyOut": 0,
+          "net": -13.65,
+          "handsWon": null
+        }
+      ]
+    }
+  ]
 }
