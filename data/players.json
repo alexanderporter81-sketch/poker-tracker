@@ -1,4 +1,9 @@
 {
   "_instructions": "Map PokerNow player IDs to real names.",
-  "players": {}
+  "players": {
+    "imfBKvRwT1": "Jons",
+    "EWYQC1gKCB": "AlPo",
+    "K5Z8P1gBJh": "GunGun",
+    "AhymCtHL_H": "'stin"
+  }
 }
