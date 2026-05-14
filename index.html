@@ -112,6 +112,7 @@
   </div>
   <div class="header-actions">
     <span class="last-updated" id="lastUpdated"></span>
+    <a id="historyLink" href="#" target="_blank" class="btn btn-ghost" title="View change history" style="text-decoration:none">📜 History</a>
     <button class="btn btn-ghost" onclick="openPlayers()" title="Manage players">👤</button>
     <button class="btn btn-ghost" onclick="openSettings()" title="Settings">⚙</button>
     <button class="btn btn-primary" onclick="openAddSession()">+ Add Session</button>
@@ -450,7 +451,13 @@ function saveSettings(){
   const token=document.getElementById('s_token').value.trim();
   if(!owner||!repo||!token){document.getElementById('settingsError').innerHTML='<div class="error-msg">All fields are required.</div>';return;}
   store.set('owner',owner);store.set('repo',repo);store.set('token',token);
+  updateHistoryLink(owner,repo);
   closeModal('settingsModal');load();
+}
+
+function updateHistoryLink(owner,repo){
+  const link=document.getElementById('historyLink');
+  if(link&&owner&&repo) link.href=`https://github.com/${owner}/${repo}/commits/main`;
 }
 
 // ── Manage Players ────────────────────────────────────────────────────────────
@@ -616,6 +623,7 @@ async function saveSession(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+updateHistoryLink(store.get('owner'),store.get('repo'));
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
 const PLAYER_COLORS = ['#f0c040','#4fc3f7','#81c784','#ff8a65','#ce93d8','#f48fb1','#80cbc4','#ffcc80','#a5d6a7','#90caf9'];
